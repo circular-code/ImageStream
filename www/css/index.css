@@ -151,10 +151,21 @@ html, body {
     width: 0%;
     background-color: #ffffff;
     opacity: 0.5;
-    transition: width 3000 ease-in-out;
+    
     border-right: 5px solid grey;
 }
 
 #time.running {
+    animation: timeframes 3s ease-in-out;
     width: 100%;
+}
+
+
+@keyframes timeframes {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
 }
