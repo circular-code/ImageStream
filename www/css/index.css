@@ -115,7 +115,7 @@ h1 {
 }
 
 
-/** custom part **/
+/** custom css **/
 
 html, body {
    width: 100%;
@@ -141,4 +141,20 @@ html, body {
    width: 222px;
    height: 53px;
    font-size: 20px;
+}
+
+#time {
+    height: 5px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    background-color: #ffffff;
+    opacity: 0.5;
+    transition: width 3000 ease-in-out;
+    border-right: 5px solid grey;
+}
+
+#time.running {
+    width: 100%;
 }

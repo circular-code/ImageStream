@@ -1,11 +1,19 @@
+// global vars
+
+var imagesArray = [];
+var globalCounter = 0;
+var keyword = 'landscape';
+
+// sources
+var flickr = true;
+var imgur = true;
+
+
 $(document).ready(function()
 {
-   var imagesArray = [];
-   var globalCounter = 0;
-   var keyword = 'landscape';
-   var renderInterval = null;
+    var renderInterval = null;
 
-   var initApp = {
+    var initApp = {
       init: function() 
       {
          this.getDom();
@@ -21,53 +29,51 @@ $(document).ready(function()
       {
          this.getButton.on('click', function() 
          {
-            initApp.handleImageRequest();
+            controller.handleImageRequest();
          });
          
          this.input.on('keyup', function(e) 
          {
             if (e.keyCode == 13)
             {
-               initApp.handleImageRequest();
+                controller.handleImageRequest();
             }
          });
       },
-      handleImageRequest: function() 
-      {
-         // reset Images
-         renderImages.reset();
-
-         //refresh searchTerm
-         this.input = $('#input');
-
-         if (initApp.input.val() !== ''){
-            keyword = initApp.input.val();
-         }
-
-         getImages.init();
-
-         this.body.on('touchstart', function(e) 
-         {
-            if (e.target !== initApp.body[0])
-               return;
-
-            options.pause();
-         });
-         this.body.on('touchend', function(e) 
-         {
-            if (e.target !== initApp.body[0])
-               return;
-
-            options.pause();
-         });
-      }
    };
+
+   var controller = {
+        input: null,
+        handleImageRequest: function() 
+        {
+            renderImages.reset();
+
+            //refresh searchTerm
+            this.input = $('#input');
+
+            if (initApp.input.val() !== ''){
+                keyword = initApp.input.val();
+            }
+
+            getImages.init();
+
+            initApp.body.on('touchstart touchend mousedown mouseup', function(e) 
+            {
+                if (e.target !== initApp.body[0])
+                    return;
+
+                options.pause();
+            });
+        }
+   }
 
    var getImages = {
       init: function() 
       {
-         this.getImgur();
-         this.getFlickr();
+         if (imgur)
+            this.getImgur();
+         if (flickr)
+            this.getFlickr();
       },
       getImgur: function() {
 
@@ -98,7 +104,7 @@ $(document).ready(function()
                   }
                }
                else {
-                  console.log('no data');
+                  console.log('no data from imgur');
                }
                if (imagesArray.length > 0 && !renderInterval) 
                {
@@ -127,6 +133,7 @@ $(document).ready(function()
          });
       }
    };
+
    var renderImages = {
       init: function(paused) {
 
@@ -144,9 +151,7 @@ $(document).ready(function()
       render: function() 
       {
          $('body').css('background-image', "url('" + imagesArray[globalCounter] + "')");
-         //$('imagePane2').css('background-image', "url('" + imagesArray[globalCounter+1] + "')");
-         //$('imagePane3').css('background-image', "url('" + imagesArray[globalCounter+2] + "')");
-         globalCounter+=3;
+         globalCounter++;
 
          if (imagesArray.length <= globalCounter) 
          {
