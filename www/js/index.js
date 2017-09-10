@@ -1,15 +1,17 @@
-// global vars
-
-var imagesArray = [];
-var globalCounter = 0;
-var keyword = 'landscape';
-
 // sources
 var flickr = true;
 var imgur = true;
 
+// options
+var keyword = 'landscape';
+var speed = 5000;
+
 
 $(document).ready(function () {
+
+    // global vars
+    var imagesArray = [];
+    var globalCounter = 0;
     var renderInterval = null;
 
     var initApp = {
@@ -126,7 +128,7 @@ $(document).ready(function () {
 
             renderInterval = setInterval(function () {
                 renderImages.render();
-            }, 3000);
+            }, speed);
         },
         render: function () {
             $('#time').removeClass('running');  
@@ -154,12 +156,15 @@ $(document).ready(function () {
         paused: false,
         pause: function () {
             if (this.paused) {
+                $('#time').css('animation','');
                 renderImages.init(this.paused);
                 this.paused = false;
             }
             else {
                 clearInterval(renderInterval);
                 this.paused = true;
+                $('#time').css('width',$('#time').css('width'));
+                $('#time').css('animation','none');
             }
         }
     };
