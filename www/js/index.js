@@ -13,6 +13,9 @@ $(document).ready(function () {
     var imagesArray = [];
     var globalCounter = 0;
     var renderInterval = null;
+    var renderTimeout = null;
+    var globalTimer = 0;
+    var globalTimerRest = 0;
 
     var initApp = {
         init: function () {
@@ -120,23 +123,33 @@ $(document).ready(function () {
 
     var renderImages = {
         init: function (paused) {
-
+            var restTime = 0;
             // beeing able to init when paused
             if (paused) {
-                renderImages.render();
+                restTime = globalTimerRest - globalTimer;
             }
 
-            renderInterval = setInterval(function () {
-                renderImages.render();
-            }, speed);
+            var renderTimeout = setTimeout(function() {
+                if (!restTime){
+                    renderImages.render();
+                }
+                renderInterval = setInterval(function () {
+                    renderImages.render();
+                }, speed);
+            },restTime ? speed-restTime : 0);
         },
         render: function () {
+
             $('#time').removeClass('running');  
             $('body').css('background-image', "url('" + imagesArray[globalCounter] + "')");
+
             globalCounter++;
+            globalTimer = Date.now();
+
             setTimeout(function() {
                 $('#time').addClass('running');  
             },50)
+
             if (imagesArray.length <= globalCounter) {
                 renderImages.reset();
             }
@@ -161,7 +174,9 @@ $(document).ready(function () {
                 this.paused = false;
             }
             else {
+                renderTimeout = null;
                 clearInterval(renderInterval);
+                globalTimerRest = Date.now();
                 this.paused = true;
                 $('#time').css('width',$('#time').css('width'));
                 $('#time').css('animation','none');
