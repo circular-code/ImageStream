@@ -54,12 +54,19 @@ $(document).ready(function () {
 
             getImages.init();
 
-            initApp.body.on('touchstart touchend mousedown mouseup', function (e) {
+            initApp.body.on('touchstart mousedown', function (e) {
                 if (e.target !== initApp.body[0])
                     return;
 
                 options.pause();
             });
+            initApp.body.on('touchend mouseup', function (e) {
+                if (e.target !== initApp.body[0])
+                    return;
+
+                options.pause(true);
+            });
+            
         }
     }
 
@@ -130,13 +137,14 @@ $(document).ready(function () {
             }
 
             var renderTimeout = setTimeout(function() {
-                //if (!restTime){
-                    renderImages.render();
-                //}
+
+                renderImages.render();
+
                 renderInterval = setInterval(function () {
                     renderImages.render();
                 }, speed);
-            },restTime ? speed-restTime : 0);
+
+            }, restTime ? speed-restTime : 0);
         },
         render: function () {
 
@@ -157,6 +165,7 @@ $(document).ready(function () {
         reset: function () {
             $('imagePane1').css('background-image', "none");
             clearInterval(renderInterval);
+            clearTimeout(renderTimeout);
             imagesArray = [];
             renderInterval = null;
             globalCounter = 0;
@@ -166,18 +175,15 @@ $(document).ready(function () {
     };
 
     var options = {
-        paused: false,
-        pause: function () {
-            if (this.paused) {
+        pause: function (paused) {
+            if (paused) {
                 $('#time').css('animation','');
-                clearTimeout(renderTimeout);
-                renderImages.init(this.paused);
-                this.paused = false;
+                renderImages.init(paused);
             }
             else {
                 clearInterval(renderInterval);
+                clearTimeout(renderTimeout);
                 globalTimerRest = Date.now();
-                this.paused = true;
                 $('#time').css('width',$('#time').css('width'));
                 $('#time').css('animation','none');
             }
