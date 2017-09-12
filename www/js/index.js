@@ -130,9 +130,9 @@ $(document).ready(function () {
             }
 
             var renderTimeout = setTimeout(function() {
-                if (!restTime){
+                //if (!restTime){
                     renderImages.render();
-                }
+                //}
                 renderInterval = setInterval(function () {
                     renderImages.render();
                 }, speed);
@@ -170,11 +170,11 @@ $(document).ready(function () {
         pause: function () {
             if (this.paused) {
                 $('#time').css('animation','');
+                clearTimeout(renderTimeout);
                 renderImages.init(this.paused);
                 this.paused = false;
             }
             else {
-                renderTimeout = null;
                 clearInterval(renderInterval);
                 globalTimerRest = Date.now();
                 this.paused = true;
