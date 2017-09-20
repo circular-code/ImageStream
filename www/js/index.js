@@ -16,6 +16,7 @@ $(document).ready(function () {
     var renderTimeout = null;
     var globalTimer = 0;
     var globalTimerRest = 0;
+    var elapsedTime = 0;
 
     var initApp = {
         init: function () {
@@ -131,20 +132,23 @@ $(document).ready(function () {
     var renderImages = {
         init: function (paused) {
             var restTime = 0;
+
             // beeing able to init when paused
             if (paused) {
-                restTime = globalTimerRest - globalTimer;
+                restTime = globalTimerRest - globalTimer + elapsedTime;
+                elapsedTime = restTime;
             }
 
-            var renderTimeout = setTimeout(function() {
+            renderTimeout = setTimeout(function() {
 
                 renderImages.render();
 
                 renderInterval = setInterval(function () {
+                    //$('#time').css('transition','');
+                    //$('#time').css('width','0');
                     renderImages.render();
                 }, speed);
-
-            }, restTime ? speed-restTime : 0);
+            }, restTime > 0 ? speed-restTime : 0);
         },
         render: function () {
 
@@ -153,10 +157,11 @@ $(document).ready(function () {
 
             globalCounter++;
             globalTimer = Date.now();
+            elapsedTime = 0;
 
             setTimeout(function() {
                 $('#time').addClass('running');  
-            },50)
+            },20)
 
             if (imagesArray.length <= globalCounter) {
                 renderImages.reset();
@@ -169,6 +174,7 @@ $(document).ready(function () {
             imagesArray = [];
             renderInterval = null;
             globalCounter = 0;
+            elapsedTime = 0;
 
             initApp.body.off();
         }
@@ -177,15 +183,19 @@ $(document).ready(function () {
     var options = {
         pause: function (paused) {
             if (paused) {
-                $('#time').css('animation','');
                 renderImages.init(paused);
+
+                // TODO: time animation fixen
+                //$('#time').css('transition','width ' + (speed-elapsedTime) + 'ms linear');
+                //$('#time').css('width','');
+                globalTimer = Date.now();
             }
             else {
                 clearInterval(renderInterval);
                 clearTimeout(renderTimeout);
                 globalTimerRest = Date.now();
                 $('#time').css('width',$('#time').css('width'));
-                $('#time').css('animation','none');
+                $('#time').css('transition','none');
             }
         }
     };

@@ -156,16 +156,6 @@ html, body {
 }
 
 #time.running {
-    animation: timeframes 5s linear;
+    transition: width 5s linear;
     width: 100%;
-}
-
-
-@keyframes timeframes {
-    0% {
-        width: 0%;
-    }
-    100% {
-        width: 100%;
-    }
 }
