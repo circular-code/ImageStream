@@ -4,12 +4,11 @@ var imgur = true;
 
 // options
 var keyword = 'landscape';
-var speed = 5000;
 
 
 $(document).ready(function () {
 
-    // global vars
+    /* global vars
     var imagesArray = [];
     var globalCounter = 0;
     var renderInterval = null;
@@ -17,6 +16,7 @@ $(document).ready(function () {
     var globalTimer = 0;
     var globalTimerRest = 0;
     var elapsedTime = 0;
+    */
 
     var initApp = {
         init: function () {
@@ -44,7 +44,7 @@ $(document).ready(function () {
     var controller = {
         input: null,
         handleImageRequest: function () {
-            renderImages.reset();
+            handleDrawingImages.reset();
 
             //refresh searchTerm
             this.input = $('#input');
@@ -59,15 +59,14 @@ $(document).ready(function () {
                 if (e.target !== initApp.body[0])
                     return;
 
-                options.pause();
+                handleDrawingImages.pause(true);
             });
             initApp.body.on('touchend mouseup', function (e) {
                 if (e.target !== initApp.body[0])
                     return;
 
-                options.pause(true);
-            });
-            
+                handleDrawingImages.pause();
+            });       
         }
     }
 
@@ -104,8 +103,8 @@ $(document).ready(function () {
                     else {
                         console.log('no data from imgur');
                     }
-                    if (imagesArray.length > 0 && !renderInterval) {
-                        renderImages.init(true);
+                    if (imagesArray.length > 0 && !handleDrawingImages.targetTime) {
+                        handleDrawingImages.init(true);
                     }
                 }
             });
@@ -122,81 +121,74 @@ $(document).ready(function () {
                     imagesArray.push(data.items[i].media.m.replace("_m", "_b"));
                 }
 
-                if (imagesArray.length > 0 && !renderInterval) {
-                    renderImages.init(true);
+                if (imagesArray.length > 0 && !handleDrawingImages.targetTime) {
+                    handleDrawingImages.init(true);
                 }
             });
         }
     };
 
-    var renderImages = {
-        init: function (paused) {
-            var restTime = 0;
-
-            // beeing able to init when paused
-            if (paused) {
-                restTime = globalTimerRest - globalTimer + elapsedTime;
-                elapsedTime = restTime;
+    var handleDrawingImages = {
+        init: function () {
+            this.varReset;
+            this.targetTime = Date.now() - 1;
+            this.checkInterval = setInterval(function () {
+                handleDrawingImages.check();
+            },10)
+        },
+        varReset: function (){
+            this.duration = 5000;
+            this.targetTime = 0;
+            this.downTime = 0;
+            this.pressed = false;
+            this.checkInterval = false;
+        },
+        check: function () {
+            if(!this.pressed && Date.now() > this.targetTime){
+                this.render();
             }
-
-            renderTimeout = setTimeout(function() {
-
-                renderImages.render();
-
-                renderInterval = setInterval(function () {
-                    //$('#time').css('transition','');
-                    //$('#time').css('width','0');
-                    renderImages.render();
-                }, speed);
-            }, restTime > 0 ? speed-restTime : 0);
         },
         render: function () {
+            this.targetTime += this.duration;
 
-            $('#time').removeClass('running');  
+            $('#time').removeClass('running');
             $('body').css('background-image', "url('" + imagesArray[globalCounter] + "')");
 
             globalCounter++;
-            globalTimer = Date.now();
-            elapsedTime = 0;
 
             setTimeout(function() {
                 $('#time').addClass('running');  
             },20)
 
             if (imagesArray.length <= globalCounter) {
-                renderImages.reset();
+                handleDrawingImages.reset();
             }
         },
         reset: function () {
             $('imagePane1').css('background-image', "none");
-            clearInterval(renderInterval);
-            clearTimeout(renderTimeout);
+            clearInterval(this.checkInterval);
+            this.varReset();
             imagesArray = [];
-            renderInterval = null;
             globalCounter = 0;
-            elapsedTime = 0;
-
             initApp.body.off();
-        }
-    };
-
-    var options = {
+        },
         pause: function (paused) {
             if (paused) {
-                renderImages.init(paused);
-
-                // TODO: time animation fixen
-                //$('#time').css('transition','width ' + (speed-elapsedTime) + 'ms linear');
-                //$('#time').css('width','');
-                globalTimer = Date.now();
+                this.downTime = Date.now();
+                this.pressed = true;
             }
             else {
-                clearInterval(renderInterval);
-                clearTimeout(renderTimeout);
-                globalTimerRest = Date.now();
+                this.targetTime += Date.now() - this.downTime;
+                this.pressed = false;
+
                 $('#time').css('width',$('#time').css('width'));
                 $('#time').css('transition','none');
             }
+            
+        },
+        next: function () {
+            this.render();
+            this.targetTime = Date.now() + this.duration;
         }
     };
 
