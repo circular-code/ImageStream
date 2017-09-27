@@ -1,3 +1,5 @@
+//global accesible vars
+
 // sources
 var flickr = true;
 var imgur = true;
@@ -5,18 +7,11 @@ var imgur = true;
 // options
 var keyword = 'landscape';
 
-
 $(document).ready(function () {
 
-    /* global vars
+    //global unaccessible vars
     var imagesArray = [];
     var globalCounter = 0;
-    var renderInterval = null;
-    var renderTimeout = null;
-    var globalTimer = 0;
-    var globalTimerRest = 0;
-    var elapsedTime = 0;
-    */
 
     var initApp = {
         init: function () {
@@ -134,10 +129,10 @@ $(document).ready(function () {
             this.targetTime = Date.now() - 1;
             this.checkInterval = setInterval(function () {
                 handleDrawingImages.check();
-            },10)
+            },10);
         },
         varReset: function (){
-            this.duration = 5000;
+            this.iterationTime = 5000;
             this.targetTime = 0;
             this.downTime = 0;
             this.pressed = false;
@@ -149,22 +144,17 @@ $(document).ready(function () {
             }
         },
         render: function () {
-            this.targetTime += this.duration;
-
-            $('#time').removeClass('running');
+            this.targetTime += this.iterationTime;
+            this.timeline("run");
             $('body').css('background-image', "url('" + imagesArray[globalCounter] + "')");
-
             globalCounter++;
-
-            setTimeout(function() {
-                $('#time').addClass('running');  
-            },20)
 
             if (imagesArray.length <= globalCounter) {
                 handleDrawingImages.reset();
             }
         },
         reset: function () {
+            this.timeline("reset");
             $('imagePane1').css('background-image', "none");
             clearInterval(this.checkInterval);
             this.varReset();
@@ -176,19 +166,41 @@ $(document).ready(function () {
             if (paused) {
                 this.downTime = Date.now();
                 this.pressed = true;
+                this.timeline("pause");
             }
             else {
                 this.targetTime += Date.now() - this.downTime;
                 this.pressed = false;
-
-                $('#time').css('width',$('#time').css('width'));
-                $('#time').css('transition','none');
+                this.timeline("rerun");
             }
-            
+        },
+        timeline: function(action) {
+            var timeline = $('#time');
+            switch (action) {
+                case "run": 
+                    timeline.removeClass('running');
+                    timeline.css('width','');
+                    timeline.css('transition','');
+                    setTimeout(function() {
+                       timeline.addClass('running');  
+                    },20);
+                    break;
+                case "pause":
+                    timeline.css('width',timeline.css('width'));
+                    timeline.css('transition','none');
+                    break;
+                case "reset": 
+                   timeline.removeClass('running');
+                    break;
+                case "rerun": 
+                    timeline.css('transition','width ' + (this.targetTime - Date.now()) + 'ms linear');
+                    timeline.css('width','');
+                    break;
+            }
         },
         next: function () {
             this.render();
-            this.targetTime = Date.now() + this.duration;
+            this.targetTime = Date.now() + this.iterationTime;
         }
     };
 
