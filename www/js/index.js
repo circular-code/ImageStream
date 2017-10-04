@@ -16,6 +16,7 @@ $(document).ready(function () {
     var initApp = {
         init: function () {
             this.getDom();
+            this.bindSwipeDetection();
             this.bindEvents();
         },
         getDom: function () {
@@ -33,7 +34,97 @@ $(document).ready(function () {
                     controller.handleImageRequest();
                 }
             });
+            this.body.touchswipe({
+                swipeLeft: function() { 
+                    handleDrawingImages.next();
+                },
+                swipeRight: function() {
+                    handleDrawingImages.prev();
+                    },
+                swipeUp: function() { 
+                    window.plugins.socialsharing.shareViaWhatsApp('Message via WhatsApp', null /* img */, imagesArray[globalCounter], function() {console.log('share ok')}, function(errormsg){alert(errormsg)})
+                 },
+                swipeDown: function() { alert("down"); },
+                min_move_x: 50,
+                min_move_y: 50,
+                preventDefaultEvents: true
+           });
         },
+        bindSwipeDetection: function() {
+            (function($) { 
+                $.fn.touchswipe = function(settings) {
+                  var config = {
+                         min_move_x: 20,
+                         min_move_y: 20,
+                          swipeLeft: function() { },
+                          swipeRight: function() { },
+                          swipeUp: function() { },
+                          swipeDown: function() { },
+                         preventDefaultEvents: true
+                  };
+                  
+                  if (settings) $.extend(config, settings);
+              
+                  this.each(function() {
+                      var startX;
+                      var startY;
+                      var isMoving = false;
+             
+                      function cancelTouch() {
+                          this.removeEventListener('touchmove', onTouchMove);
+                          startX = null;
+                          isMoving = false;
+                      }	
+                      
+                      function onTouchMove(e) {
+                          if(config.preventDefaultEvents) {
+                              e.preventDefault();
+                          }
+                          if(isMoving) {
+                              var x = e.touches[0].pageX;
+                              var y = e.touches[0].pageY;
+                              var dx = startX - x;
+                              var dy = startY - y;
+                              if(Math.abs(dx) >= config.min_move_x) {
+                                 cancelTouch();
+                                 if(dx > 0) {
+                                     config.swipeLeft();
+                                 }
+                                 else {
+                                     config.swipeRight();
+                                 }
+                              }
+                              else if(Math.abs(dy) >= config.min_move_y) {
+                                     cancelTouch();
+                                     if(dy > 0) {
+                                        config.swipeUp();
+                                     }
+                                     else {
+                                        config.swipeDown();
+                                     }
+                                  }
+                          }
+                      }
+                      
+                      function onTouchStart(e)
+                      {
+                          if (e.touches.length == 1) {
+                              startX = e.touches[0].pageX;
+                              startY = e.touches[0].pageY;
+                              isMoving = true;
+                              this.addEventListener('touchmove', onTouchMove, false);
+                          }
+                      }    	 
+                      if ('ontouchstart' in document.documentElement) {
+                          this.addEventListener('touchstart', onTouchStart, false);
+                      }
+                  });
+              
+                  return this;
+                };
+              
+              })(jQuery);
+        }
     };
 
     var controller = {
@@ -199,6 +290,25 @@ $(document).ready(function () {
             }
         },
         next: function () {
+            if(globalCounter === 0) {
+                alert('keine Bilder vorhanden');
+                return;
+            }
+            else{
+                this.render();
+                this.targetTime = Date.now() + this.iterationTime;
+            }
+            
+        },
+        prev: function () {
+            if (globalCounter > 1){
+                globalCounter -= 2;
+            }
+            else {
+                alert('keine Bilder vorhanden');
+                return;
+            }
+
             this.render();
             this.targetTime = Date.now() + this.iterationTime;
         }
