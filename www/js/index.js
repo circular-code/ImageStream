@@ -42,9 +42,11 @@ $(document).ready(function () {
                     handleDrawingImages.prev();
                     },
                 swipeUp: function() { 
-                    window.plugins.socialsharing.shareViaWhatsApp('Message via WhatsApp', null /* img */, imagesArray[globalCounter], function() {console.log('share ok')}, function(errormsg){alert(errormsg)})
+                    window.plugins.socialsharing.share('Shared via ImageStream', null /* img */, imagesArray[globalCounter], function() {console.log('share ok')}, function(errormsg){alert(errormsg)})
                  },
-                swipeDown: function() { alert("down"); },
+                swipeDown: function() { 
+                    downloadFiles.downloadFile(imagesArray[globalCounter],'Download',keyword + Date.now());
+                },
                 min_move_x: 50,
                 min_move_y: 50,
                 preventDefaultEvents: true
@@ -214,6 +216,71 @@ $(document).ready(function () {
         }
     };
 
+    var downloadFiles = {
+        downloadFile : function (URL, Folder_Name, File_Name) {
+            //Parameters mismatch check
+            if (URL == null && Folder_Name == null && File_Name == null) {
+                return;
+            }
+            else {
+                //checking Internet connection availablity
+                var networkState = navigator.connection.type;
+                if (networkState == Connection.NONE) {
+                    return;
+                } else {
+                    downloadFiles.download(URL, Folder_Name, File_Name); //If available download function call
+                }
+            }
+        },
+        download : function(URL, Folder_Name, File_Name) {
+                //step to request a file system 
+                    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, fileSystemSuccess, fileSystemFail);
+                
+                function fileSystemSuccess(fileSystem) {
+                    var download_link = encodeURI(URL);
+                    ext = download_link.substr(download_link.lastIndexOf('.') + 1); //Get extension of URL
+                
+                    var directoryEntry = fileSystem.root; // to get root path of directory
+                    directoryEntry.getDirectory(Folder_Name, { create: true, exclusive: false }, onDirectorySuccess, onDirectoryFail); // creating folder in sdcard
+                    var rootdir = fileSystem.root;
+                    var fp = rootdir.toURL();  // Returns Fulpath of local directory
+                
+                    fp = fp + "/" + Folder_Name + "/" + File_Name + "." + ext; // fullpath and name of the file which we want to give
+                    // download function call
+                    downloadFiles.filetransfer(download_link, fp);
+                }
+                
+                function onDirectorySuccess(parent) {
+                    // Directory created successfuly
+                }
+                
+                function onDirectoryFail(error) {
+                    //Error while creating directory
+                    alert("Unable to create new directory: " + error.code);
+                }
+                
+                function fileSystemFail(evt) {
+                //Unable to access file system
+                alert(evt.target.error.code);
+                }
+            },
+            filetransfer: function (download_link, fp) {
+                var fileTransfer = new FileTransfer();
+                // File download function with URL and local path
+                fileTransfer.download(download_link, fp,
+                    function (entry) {
+                        alert("download complete: " + entry.fullPath);
+                    },
+                    function (error) {
+                        //Download abort errors or download failed errors
+                        alert("download error source " + error.source);
+                        //alert("download error target " + error.target);
+                        //alert("upload error code" + error.code);
+                    }
+                );
+            }
+    }
+
     var handleDrawingImages = {
         init: function () {
             this.varReset;
@@ -246,8 +313,8 @@ $(document).ready(function () {
         },
         reset: function () {
             this.timeline("reset");
-            $('imagePane1').css('background-image', "none");
             clearInterval(this.checkInterval);
+            $('imagePane1').css('background-image', "none");
             this.varReset();
             imagesArray = [];
             globalCounter = 0;
@@ -297,8 +364,7 @@ $(document).ready(function () {
             else{
                 this.render();
                 this.targetTime = Date.now() + this.iterationTime;
-            }
-            
+            } 
         },
         prev: function () {
             if (globalCounter > 1){
