@@ -1,2 +1,2 @@
 # ImageStream
-An Image Streaming App for Inspiration and Entertainment.
+An image streaming app for inspiration and entertainment. Based on phonegap. Work in Progress.
